@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tpp.threat_perception_platform.mapper.HostBaselineMapper">
+
+    <resultMap id="BaseResultMap" type="com.tpp.threat_perception_platform.pojo.HostBaseline">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="mac" column="mac" jdbcType="VARCHAR"/>
+            <result property="policyType" column="policy_type" jdbcType="VARCHAR"/>
+            <result property="policyName" column="policy_name" jdbcType="VARCHAR"/>
+            <result property="resultType" column="result_type" jdbcType="INTEGER"/>
+            <result property="actualValue" column="actual_value" jdbcType="VARCHAR"/>
+            <result property="expectedValue" column="expected_value" jdbcType="VARCHAR"/>
+            <result property="message" column="message" jdbcType="VARCHAR"/>
+            <result property="timestamp" column="timestamp" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,mac,policy_type,
+        policy_name,result_type,actual_value,
+        expected_value,message,`timestamp`
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from host_baseline
+        where  id = #{id,jdbcType=INTEGER} 
+    </select>
+
+    <select id="findAll" resultType="com.tpp.threat_perception_platform.pojo.HostBaseline">
+        select
+        <include refid="Base_Column_List" />
+        from host_baseline
+        <where>
+            <if test="keywords != null and keywords != ''">
+                and (
+                policy_type like concat('%', #{keywords,jdbcType=VARCHAR}, '%')
+                or policy_name like concat('%', #{keywords,jdbcType=VARCHAR}, '%')
+                or message like concat('%', #{keywords,jdbcType=VARCHAR}, '%')
+                or mac like concat('%', #{keywords,jdbcType=VARCHAR}, '%')
+                )
+            </if>
+            <if test="status != null">
+                and result_type = #{status,jdbcType=INTEGER}
+            </if>
+            <if test="start != null and start != ''">
+                and `timestamp` &gt;= #{start,jdbcType=TIMESTAMP}
+            </if>
+            <if test="end != null and end != ''">
+                and `timestamp` &lt;= #{end,jdbcType=TIMESTAMP}
+            </if>
+        </where>
+    </select>
+    <select id="selectCount" resultType="java.lang.Integer">
+        select count(*) from host_baseline
+    </select>
+
+    <select id="selectAbnormalCount" resultType="java.lang.Integer">
+        select count(*) from host_baseline
+        where result_type = 0
+    </select>
+
+    <select id="selectAbnormalHosts" resultType="java.lang.String">
+        select distinct mac from host_baseline
+        where result_type = 0
+    </select>
+
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete from host_baseline
+        where  id = #{id,jdbcType=INTEGER} 
+    </delete>
+
+    <delete id="deleteByMac">
+        delete from host_baseline
+        where  mac = #{mac,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.tpp.threat_perception_platform.pojo.HostBaseline" useGeneratedKeys="true">
+        insert into host_baseline
+        ( id,mac,policy_type
+        ,policy_name,result_type,actual_value
+        ,expected_value,message,`timestamp`
+        )
+        values (#{id,jdbcType=INTEGER},#{mac,jdbcType=VARCHAR},#{policyType,jdbcType=VARCHAR}
+        ,#{policyName,jdbcType=VARCHAR},#{resultType,jdbcType=INTEGER},#{actualValue,jdbcType=VARCHAR}
+        ,#{expectedValue,jdbcType=VARCHAR},#{message,jdbcType=VARCHAR},#{timestamp,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.tpp.threat_perception_platform.pojo.HostBaseline" useGeneratedKeys="true">
+        insert into host_baseline
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="id != null">id,</if>
+                <if test="mac != null">mac,</if>
+                <if test="policyType != null">policy_type,</if>
+                <if test="policyName != null">policy_name,</if>
+                <if test="resultType != null">result_type,</if>
+                <if test="actualValue != null">actual_value,</if>
+                <if test="expectedValue != null">expected_value,</if>
+                <if test="message != null">message,</if>
+                <if test="timestamp != null">`timestamp`,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="id != null">#{id,jdbcType=INTEGER},</if>
+                <if test="mac != null">#{mac,jdbcType=VARCHAR},</if>
+                <if test="policyType != null">#{policyType,jdbcType=VARCHAR},</if>
+                <if test="policyName != null">#{policyName,jdbcType=VARCHAR},</if>
+                <if test="resultType != null">#{resultType,jdbcType=INTEGER},</if>
+                <if test="actualValue != null">#{actualValue,jdbcType=VARCHAR},</if>
+                <if test="expectedValue != null">#{expectedValue,jdbcType=VARCHAR},</if>
+                <if test="message != null">#{message,jdbcType=VARCHAR},</if>
+                <if test="timestamp != null">#{timestamp,jdbcType=TIMESTAMP},</if>
+        </trim>
+    </insert>
+    <insert id="insertBatch">
+        insert into host_baseline
+        (mac,policy_type,policy_name,result_type,actual_value,expected_value,message,`timestamp`)
+        values
+        <foreach collection="list" item="hostBaseline" separator=",">
+            (
+            #{hostBaseline.mac,jdbcType=VARCHAR},
+            #{hostBaseline.policyType,jdbcType=VARCHAR},
+            #{hostBaseline.policyName,jdbcType=VARCHAR},
+            #{hostBaseline.resultType,jdbcType=INTEGER},
+             #{hostBaseline.actualValue,jdbcType=VARCHAR},
+             #{hostBaseline.expectedValue,jdbcType=VARCHAR},
+             #{hostBaseline.message,jdbcType=VARCHAR},
+             now()
+            )
+        </foreach>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.tpp.threat_perception_platform.pojo.HostBaseline">
+        update host_baseline
+        <set>
+                <if test="mac != null">
+                    mac = #{mac,jdbcType=VARCHAR},
+                </if>
+                <if test="policyType != null">
+                    policy_type = #{policyType,jdbcType=VARCHAR},
+                </if>
+                <if test="policyName != null">
+                    policy_name = #{policyName,jdbcType=VARCHAR},
+                </if>
+                <if test="resultType != null">
+                    result_type = #{resultType,jdbcType=INTEGER},
+                </if>
+                <if test="actualValue != null">
+                    actual_value = #{actualValue,jdbcType=VARCHAR},
+                </if>
+                <if test="expectedValue != null">
+                    expected_value = #{expectedValue,jdbcType=VARCHAR},
+                </if>
+                <if test="message != null">
+                    message = #{message,jdbcType=VARCHAR},
+                </if>
+                <if test="timestamp != null">
+                    `timestamp` = #{timestamp,jdbcType=TIMESTAMP},
+                </if>
+        </set>
+        where   id = #{id,jdbcType=INTEGER} 
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.tpp.threat_perception_platform.pojo.HostBaseline">
+        update host_baseline
+        set 
+            mac =  #{mac,jdbcType=VARCHAR},
+            policy_type =  #{policyType,jdbcType=VARCHAR},
+            policy_name =  #{policyName,jdbcType=VARCHAR},
+            result_type =  #{resultType,jdbcType=INTEGER},
+            actual_value =  #{actualValue,jdbcType=VARCHAR},
+            expected_value =  #{expectedValue,jdbcType=VARCHAR},
+            message =  #{message,jdbcType=VARCHAR},
+            timestamp =  #{timestamp,jdbcType=TIMESTAMP}
+        where   id = #{id,jdbcType=INTEGER} 
+    </update>
+</mapper>

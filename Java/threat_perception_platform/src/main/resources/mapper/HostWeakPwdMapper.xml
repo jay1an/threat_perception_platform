@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tpp.threat_perception_platform.mapper.HostWeakPwdMapper">
+
+    <resultMap id="BaseResultMap" type="com.tpp.threat_perception_platform.pojo.HostWeakPwd">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="mac" column="mac" jdbcType="VARCHAR"/>
+            <result property="username" column="username" jdbcType="VARCHAR"/>
+            <result property="weakPwd" column="weak_pwd" jdbcType="VARCHAR"/>
+            <result property="type" column="type" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,mac,username,
+        weak_pwd,type,create_time
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from host_weak_pwd
+        where  id = #{id,jdbcType=INTEGER} 
+    </select>
+    <select id="findAll" resultType="com.tpp.threat_perception_platform.pojo.HostWeakPwd">
+        select
+        <include refid="Base_Column_List" />
+        from host_weak_pwd
+        <where>
+            <if test="keywords != null and keywords!=''">
+                and mac = #{keywords,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+    <select id="selectAbnormalHosts" resultType="java.lang.String">
+        select distinct mac from host_weak_pwd
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Integer">
+        select count(*) from host_weak_pwd
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete from host_weak_pwd
+        where  id = #{id,jdbcType=INTEGER} 
+    </delete>
+
+    <delete id="deleteByMac">
+        delete from host_weak_pwd
+        where  mac = #{mac,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.tpp.threat_perception_platform.pojo.HostWeakPwd" useGeneratedKeys="true">
+        insert into host_weak_pwd
+        ( id,mac,username
+        ,weak_pwd,type)
+        values (#{id,jdbcType=INTEGER},#{mac,jdbcType=VARCHAR},#{username,jdbcType=VARCHAR}
+        ,#{weakPwd,jdbcType=VARCHAR},#{type,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.tpp.threat_perception_platform.pojo.HostWeakPwd" useGeneratedKeys="true">
+        insert into host_weak_pwd
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="id != null">id,</if>
+                <if test="mac != null">mac,</if>
+                <if test="username != null">username,</if>
+                <if test="weakPwd != null">weak_pwd,</if>
+                <if test="type != null">type,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="id != null">#{id,jdbcType=INTEGER},</if>
+                <if test="mac != null">#{mac,jdbcType=VARCHAR},</if>
+                <if test="username != null">#{username,jdbcType=VARCHAR},</if>
+                <if test="weakPwd != null">#{weakPwd,jdbcType=VARCHAR},</if>
+                <if test="type != null">#{type,jdbcType=VARCHAR},</if>
+        </trim>
+    </insert>
+    <insert id="insertBatch">
+        insert into host_weak_pwd
+        (mac,username,weak_pwd,type)
+        values
+        <foreach collection="hostWeakPwds" item="hostWeakPwd" separator=",">
+            (#{hostWeakPwd.mac,jdbcType=VARCHAR},
+            #{hostWeakPwd.username,jdbcType=VARCHAR},
+            #{hostWeakPwd.weakPwd,jdbcType=VARCHAR},
+            #{hostWeakPwd.type,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.tpp.threat_perception_platform.pojo.HostWeakPwd">
+        update host_weak_pwd
+        <set>
+                <if test="mac != null">
+                    mac = #{mac,jdbcType=VARCHAR},
+                </if>
+                <if test="username != null">
+                    username = #{username,jdbcType=VARCHAR},
+                </if>
+                <if test="weakPwd != null">
+                    weak_pwd = #{weakPwd,jdbcType=VARCHAR},
+                </if>
+                <if test="type != null">
+                    type = #{type,jdbcType=VARCHAR},
+                </if>
+                create_time = now()
+        </set>
+        where   id = #{id,jdbcType=INTEGER} 
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.tpp.threat_perception_platform.pojo.HostWeakPwd">
+        update host_weak_pwd
+        set 
+            mac =  #{mac,jdbcType=VARCHAR},
+            username =  #{username,jdbcType=VARCHAR},
+            weak_pwd =  #{weakPwd,jdbcType=VARCHAR},
+            type =  #{type,jdbcType=VARCHAR}
+        where   id = #{id,jdbcType=INTEGER} 
+    </update>
+</mapper>

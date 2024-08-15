@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tpp.threat_perception_platform.mapper.HostAppThreatMapper">
+
+    <resultMap id="BaseResultMap" type="com.tpp.threat_perception_platform.pojo.HostAppThreat">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="mac" column="mac" jdbcType="VARCHAR"/>
+            <result property="appThreatId" column="app_threat_id" jdbcType="INTEGER"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <resultMap id="BaseResultMap2" type="com.tpp.threat_perception_platform.pojo.HostAppThreat">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="mac" column="mac" jdbcType="VARCHAR"/>
+        <result property="appThreatId" column="app_threat_id" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <association property="appThreatsDb" column="app_threat_id"
+                     select="com.tpp.threat_perception_platform.mapper.AppThreatsDbMapper.selectByPrimaryKey"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,mac,app_threat_id,
+        create_time
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from host_app_threat
+        where  id = #{id,jdbcType=INTEGER} 
+    </select>
+
+    <select id="findAll" resultMap="BaseResultMap2" parameterType="com.tpp.threat_perception_platform.pojo.HostAppThreat">
+        select
+        <include refid="Base_Column_List" />
+        from host_app_threat
+        <where>
+            <if test="keywords != null and keywords != ''">
+                and (
+                mac like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+                )
+            </if>
+            <if test="start != null and start != ''">
+                and create_time &gt;= #{start,jdbcType=TIMESTAMP}
+            </if>
+            <if test="end != null and end != ''">
+                and create_time &lt;= #{end,jdbcType=TIMESTAMP}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectAbnormalHosts" resultType="java.lang.String">
+        select distinct mac from host_app_threat
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Integer">
+        select count(*) from host_app_threat
+    </select>
+
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete from host_app_threat
+        where  id = #{id,jdbcType=INTEGER} 
+    </delete>
+
+    <delete id="deleteByMac">
+        delete from host_app_threat
+        where  mac = #{mac,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.tpp.threat_perception_platform.pojo.HostAppThreat" useGeneratedKeys="true">
+        insert into host_app_threat
+        ( id,mac,app_threat_id
+        )
+        values (#{id,jdbcType=INTEGER},#{mac,jdbcType=VARCHAR},#{appThreatId,jdbcType=INTEGER}
+        )
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.tpp.threat_perception_platform.pojo.HostAppThreat" useGeneratedKeys="true">
+        insert into host_app_threat
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="id != null">id,</if>
+                <if test="mac != null">mac,</if>
+                <if test="appThreatId != null">app_threat_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="id != null">#{id,jdbcType=INTEGER},</if>
+                <if test="mac != null">#{mac,jdbcType=VARCHAR},</if>
+                <if test="appThreatId != null">#{appThreatId,jdbcType=INTEGER},</if>
+        </trim>
+    </insert>
+    <insert id="insertBatch">
+        insert into host_app_threat
+        (id,mac,app_threat_id)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id,jdbcType=INTEGER},#{item.mac,jdbcType=VARCHAR},#{item.appThreatId,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.tpp.threat_perception_platform.pojo.HostAppThreat">
+        update host_app_threat
+        <set>
+                <if test="mac != null">
+                    mac = #{mac,jdbcType=VARCHAR},
+                </if>
+                <if test="appThreatId != null">
+                    app_threat_id = #{appThreatId,jdbcType=INTEGER},
+                </if>
+                <if test="createTime != null">
+                    create_time = #{createTime,jdbcType=TIMESTAMP},
+                </if>
+        </set>
+        where   id = #{id,jdbcType=INTEGER} 
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.tpp.threat_perception_platform.pojo.HostAppThreat">
+        update host_app_threat
+        set 
+            mac =  #{mac,jdbcType=VARCHAR},
+            app_threat_id =  #{appThreatId,jdbcType=INTEGER},
+            create_time =  #{createTime,jdbcType=TIMESTAMP}
+        where   id = #{id,jdbcType=INTEGER} 
+    </update>
+</mapper>

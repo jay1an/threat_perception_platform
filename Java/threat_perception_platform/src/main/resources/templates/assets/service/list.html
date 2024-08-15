@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>服务资产管理</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/layui/layuiAdmin/css/admin.css" media="all">
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto" style="border-radius: 0;border-top: 4px solid #d2d2d2;">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">选择主机</label>
+                    <div class="layui-input-inline">
+<!--                        <input type="text" name="keywords" placeholder="请输入MAC地址" autocomplete="off" class="layui-input">-->
+                        <label>
+                            <select id="host-select" lay-search="cs" name="keywords">
+                                <option value="">请选择主机</option>
+<!--                                ajax后续加载数据-->
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <button class="layui-btn layuiadmin-btn-useradmin" lay-submit lay-filter="LAY-sysuser-front-search">
+                        <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="layui-card-body">
+
+
+            <!--  表格数据加载 -->
+            <table id="LAY-user-manage" lay-filter="LAY-user-manage"></table>
+
+            <script type="text/html" id="table-useradmin-webuser">
+                <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="detail"><i class="layui-icon layui-icon-set"></i>详情</a>
+            </script>
+
+
+            <!--  创建时间格式化处理 -->
+        </div>
+    </div>
+</div>
+
+<script src="/layui/layui.js"></script>
+
+<script type="text/javascript">
+    layui.config({
+        base: '/layui/layuiAdmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['layer','table','form'], function(){
+        var $ = layui.$
+            ,form = layui.form
+            ,layer = layui.layer
+            ,table = layui.table;
+
+        //加载table
+        table.render({
+            elem: '#LAY-user-manage'
+            ,method: 'post'
+            ,url:'/assets/service/list' //后端接口
+            ,headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+            ,width: 'auto'// 自适应宽度
+            ,cellMinWidth: 80 //全局定义常规单元格的最小宽度
+            ,title: '系统用户数据表'
+            ,cols: [
+                [
+                    {field: 'id', title: 'ID', width: 60, sort: true},
+                    {field: 'mac', title: 'MAC地址', width: 170},
+                    {field: 'protocol', title: '协议', width: 60},
+                    {field: 'port', title: '端口号', width: 80},
+                    {field: 'state', title: '状态', width: 70},
+                    {field: 'name', title: '服务名称', width: 130},
+                    {field: 'product', title: '服务产品名称', width: 300},
+                    {field: 'version', title: '版本', width: 80},
+                    {field: 'extrainfo', title: '额外信息', width: 200},
+                    {fixed: 'right', title: '操作', toolbar: '#table-useradmin-webuser', width: 90}
+                ]
+            ]
+            ,page: {
+                curr: 1 //设定初始在第 5 页
+                ,limit: 15 //设定初始每页显示 5 条
+            },
+            limits:[10,15,20,25,30]
+        });
+
+        //监听行工具事件: 详情
+        // 监听行工具事件: 详情
+        table.on('tool(LAY-user-manage)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'detail'){
+                layer.open({
+                    type: 2,
+                    title: '服务详细信息',
+                    skin: 'layui-layer-molv',
+                    content: '/page/assets/service/detail',
+                    maxmin: true,
+                    area: ['500px', '610px'], // 调整窗口大小以适应所有字段
+                    btn: ['确定'],
+                    yes: function(index, layero){
+                        layer.close(index);
+                    },
+                    success: function (layero, index){ //弹出层加载之前执行
+                        // 获取选中行的数据
+                        var data = obj.data;
+                        // 获取弹出层的表单
+                        var contentWindow = layero.find('iframe')[0].contentWindow; // 得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+                        // 数据回显到弹出的表单中
+                        contentWindow.layui.form.val('layuiadmin-form-useradmin', {
+                            id: data.id,
+                            mac: data.mac,
+                            protocol: data.protocol,
+                            state: data.state,
+                            name: data.name,
+                            product: data.product,
+                            version: data.version,
+                            extrainfo: data.extrainfo,
+                            port: data.port
+                        });
+                    }
+                });
+            }
+        });
+
+
+        //监听搜索
+        form.on('submit(LAY-sysuser-front-search)', function(data){
+            var field = data.field;
+            //执行重载
+            table.reload('LAY-user-manage', {
+                url: '/assets/service/list',
+                method: "post",
+                headers: {
+                    'Authorization': localStorage.getItem('token')
+                },
+                where: field
+            });
+        });
+
+        $('.layui-btn.layuiadmin-btn-useradmin').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+
+
+        // 发起 AJAX 请求以获取主机数据
+        $.ajax({
+            url: '/host/list/2', // 替换为你的实际接口地址
+            type: 'post',
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            },
+            dataType: 'json',
+            success: function(response) {
+                // 确认返回的数据格式是否正确
+                console.log('返回的数据:', response);
+
+                // 检查返回的 code 是否为 0 并且 data 是否为数组
+                if (response.code === 0 && Array.isArray(response.data)) {
+                    var hosts = response.data;
+
+                    var $select = $('#host-select');
+                    // 清空现有的选项
+                    $select.empty();
+                    // 添加默认选项
+                    $select.append($('<option>', {
+                        value: '',
+                        text: '请选择主机'
+                    }));
+
+                    // 遍历数据并添加选项
+                    hosts.forEach(function(host) {
+                        var $option = $('<option>', {
+                            value: host.mac,
+                            text: host.hostname
+                        });
+                        console.log('添加选项:', $option);
+                        $select.append($option);
+                    });
+
+                    // 重新渲染 select 组件以使新添加的选项生效
+                    layui.form.render('select');
+                } else {
+                    console.error('返回的数据格式不正确:', response);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('加载主机数据失败:', error);
+            }
+        });
+
+    });
+</script>
+</body>
+</html>

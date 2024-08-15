@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tpp.threat_perception_platform.mapper.AccountMapper">
+
+    <resultMap id="BaseResultMap" type="com.tpp.threat_perception_platform.pojo.Account">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="accountType" column="account_type" jdbcType="INTEGER"/>
+            <result property="caption" column="caption" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="disabled" column="disabled" jdbcType="TINYINT"/>
+            <result property="domain" column="domain" jdbcType="VARCHAR"/>
+            <result property="fullName" column="full_name" jdbcType="VARCHAR"/>
+            <result property="localAccount" column="local_account" jdbcType="TINYINT"/>
+            <result property="lockout" column="lockout" jdbcType="TINYINT"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="passwordChangeable" column="password_changeable" jdbcType="TINYINT"/>
+            <result property="passwordExpires" column="password_expires" jdbcType="TINYINT"/>
+            <result property="passwordRequired" column="password_required" jdbcType="TINYINT"/>
+            <result property="sid" column="sid" jdbcType="VARCHAR"/>
+            <result property="sidType" column="sid_type" jdbcType="INTEGER"/>
+            <result property="status" column="status" jdbcType="VARCHAR"/>
+            <result property="mac" column="mac" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,account_type,caption,
+        description,disabled,domain,
+        full_name,local_account,lockout,
+        name,password_changeable,password_expires,
+        password_required,sid,sid_type,
+        status,mac
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from account
+        where  id = #{id,jdbcType=INTEGER} 
+    </select>
+    <select id="selectByMac" resultType="com.tpp.threat_perception_platform.pojo.Account">
+        select
+        <include refid="Base_Column_List" />
+        from account
+        where mac = #{mac,jdbcType=VARCHAR}
+    </select>
+    <select id="selectByMacAndName" resultType="com.tpp.threat_perception_platform.pojo.Account">
+        select
+        <include refid="Base_Column_List" />
+        from account
+        where mac = #{mac,jdbcType=VARCHAR} and name = #{name,jdbcType=VARCHAR}
+    </select>
+    <select id="selectByMacAndSid" resultType="com.tpp.threat_perception_platform.pojo.Account">
+        select
+        <include refid="Base_Column_List" />
+        from account
+        where mac = #{mac,jdbcType=VARCHAR} and sid = #{sid,jdbcType=VARCHAR}
+    </select>
+    <select id="findAll" resultType="com.tpp.threat_perception_platform.pojo.Account">
+        select
+        <include refid="Base_Column_List" />
+        from account
+        <where>
+            <if test="keywords != null and keywords!=''">
+                and mac like concat('%', #{keywords,jdbcType=VARCHAR},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectUsernamesByMac" resultType="java.lang.String">
+        select name from account
+        where mac = #{mac,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Integer">
+        select count(*) from account
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete from account
+        where  id = #{id,jdbcType=INTEGER} 
+    </delete>
+    <delete id="deleteByMac">
+        delete from account
+        where mac = #{mac,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.tpp.threat_perception_platform.pojo.Account" useGeneratedKeys="true">
+        insert into account
+        ( id,account_type,caption
+        ,description,disabled,domain
+        ,full_name,local_account,lockout
+        ,name,password_changeable,password_expires
+        ,password_required,sid,sid_type
+        ,status,mac)
+        values (#{id,jdbcType=INTEGER},#{accountType,jdbcType=INTEGER},#{caption,jdbcType=VARCHAR}
+        ,#{description,jdbcType=VARCHAR},#{disabled,jdbcType=TINYINT},#{domain,jdbcType=VARCHAR}
+        ,#{fullName,jdbcType=VARCHAR},#{localAccount,jdbcType=TINYINT},#{lockout,jdbcType=TINYINT}
+        ,#{name,jdbcType=VARCHAR},#{passwordChangeable,jdbcType=TINYINT},#{passwordExpires,jdbcType=TINYINT}
+        ,#{passwordRequired,jdbcType=TINYINT},#{sid,jdbcType=VARCHAR},#{sidType,jdbcType=INTEGER}
+        ,#{status,jdbcType=VARCHAR},#{mac,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.tpp.threat_perception_platform.pojo.Account" useGeneratedKeys="true">
+        insert into account
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="id != null">id,</if>
+                <if test="accountType != null">account_type,</if>
+                <if test="caption != null">caption,</if>
+                <if test="description != null">description,</if>
+                <if test="disabled != null">disabled,</if>
+                <if test="domain != null">domain,</if>
+                <if test="fullName != null">full_name,</if>
+                <if test="localAccount != null">local_account,</if>
+                <if test="lockout != null">lockout,</if>
+                <if test="name != null">name,</if>
+                <if test="passwordChangeable != null">password_changeable,</if>
+                <if test="passwordExpires != null">password_expires,</if>
+                <if test="passwordRequired != null">password_required,</if>
+                <if test="sid != null">sid,</if>
+                <if test="sidType != null">sid_type,</if>
+                <if test="status != null">status,</if>
+                <if test="mac != null">mac,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="id != null">#{id,jdbcType=INTEGER},</if>
+                <if test="accountType != null">#{accountType,jdbcType=INTEGER},</if>
+                <if test="caption != null">#{caption,jdbcType=VARCHAR},</if>
+                <if test="description != null">#{description,jdbcType=VARCHAR},</if>
+                <if test="disabled != null">#{disabled,jdbcType=TINYINT},</if>
+                <if test="domain != null">#{domain,jdbcType=VARCHAR},</if>
+                <if test="fullName != null">#{fullName,jdbcType=VARCHAR},</if>
+                <if test="localAccount != null">#{localAccount,jdbcType=TINYINT},</if>
+                <if test="lockout != null">#{lockout,jdbcType=TINYINT},</if>
+                <if test="name != null">#{name,jdbcType=VARCHAR},</if>
+                <if test="passwordChangeable != null">#{passwordChangeable,jdbcType=TINYINT},</if>
+                <if test="passwordExpires != null">#{passwordExpires,jdbcType=TINYINT},</if>
+                <if test="passwordRequired != null">#{passwordRequired,jdbcType=TINYINT},</if>
+                <if test="sid != null">#{sid,jdbcType=VARCHAR},</if>
+                <if test="sidType != null">#{sidType,jdbcType=INTEGER},</if>
+                <if test="status != null">#{status,jdbcType=VARCHAR},</if>
+                <if test="mac != null">#{mac,jdbcType=VARCHAR},</if>
+        </trim>
+    </insert>
+    <insert id="insertBatch">
+        insert into account
+        (account_type, caption, description, disabled, domain, full_name, local_account, lockout, name, password_changeable, password_expires, password_required, sid, sid_type, status, mac)
+        values
+        <foreach collection="list" item="account" separator=",">
+            (
+            #{account.accountType,jdbcType=INTEGER},
+            #{account.caption,jdbcType=VARCHAR},
+            #{account.description,jdbcType=VARCHAR},
+            #{account.disabled,jdbcType=TINYINT},
+            #{account.domain,jdbcType=VARCHAR},
+            #{account.fullName,jdbcType=VARCHAR},
+            #{account.localAccount,jdbcType=TINYINT},
+            #{account.lockout,jdbcType=TINYINT},
+            #{account.name,jdbcType=VARCHAR},
+            #{account.passwordChangeable,jdbcType=TINYINT},
+            #{account.passwordExpires,jdbcType=TINYINT},
+            #{account.passwordRequired,jdbcType=TINYINT},
+            #{account.sid,jdbcType=VARCHAR},
+            #{account.sidType,jdbcType=INTEGER},
+            #{account.status,jdbcType=VARCHAR},
+            #{account.mac,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.tpp.threat_perception_platform.pojo.Account">
+        update account
+        <set>
+                <if test="accountType != null">
+                    account_type = #{accountType,jdbcType=INTEGER},
+                </if>
+                <if test="caption != null">
+                    caption = #{caption,jdbcType=VARCHAR},
+                </if>
+                <if test="description != null">
+                    description = #{description,jdbcType=VARCHAR},
+                </if>
+                <if test="disabled != null">
+                    disabled = #{disabled,jdbcType=TINYINT},
+                </if>
+                <if test="domain != null">
+                    domain = #{domain,jdbcType=VARCHAR},
+                </if>
+                <if test="fullName != null">
+                    full_name = #{fullName,jdbcType=VARCHAR},
+                </if>
+                <if test="localAccount != null">
+                    local_account = #{localAccount,jdbcType=TINYINT},
+                </if>
+                <if test="lockout != null">
+                    lockout = #{lockout,jdbcType=TINYINT},
+                </if>
+                <if test="name != null">
+                    name = #{name,jdbcType=VARCHAR},
+                </if>
+                <if test="passwordChangeable != null">
+                    password_changeable = #{passwordChangeable,jdbcType=TINYINT},
+                </if>
+                <if test="passwordExpires != null">
+                    password_expires = #{passwordExpires,jdbcType=TINYINT},
+                </if>
+                <if test="passwordRequired != null">
+                    password_required = #{passwordRequired,jdbcType=TINYINT},
+                </if>
+                <if test="sid != null">
+                    sid = #{sid,jdbcType=VARCHAR},
+                </if>
+                <if test="sidType != null">
+                    sid_type = #{sidType,jdbcType=INTEGER},
+                </if>
+                <if test="status != null">
+                    status = #{status,jdbcType=VARCHAR},
+                </if>
+                <if test="mac != null">
+                    mac = #{mac,jdbcType=VARCHAR},
+                </if>
+        </set>
+        where   id = #{id,jdbcType=INTEGER} 
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.tpp.threat_perception_platform.pojo.Account">
+        update account
+        set 
+            account_type =  #{accountType,jdbcType=INTEGER},
+            caption =  #{caption,jdbcType=VARCHAR},
+            description =  #{description,jdbcType=VARCHAR},
+            disabled =  #{disabled,jdbcType=TINYINT},
+            domain =  #{domain,jdbcType=VARCHAR},
+            full_name =  #{fullName,jdbcType=VARCHAR},
+            local_account =  #{localAccount,jdbcType=TINYINT},
+            lockout =  #{lockout,jdbcType=TINYINT},
+            name =  #{name,jdbcType=VARCHAR},
+            password_changeable =  #{passwordChangeable,jdbcType=TINYINT},
+            password_expires =  #{passwordExpires,jdbcType=TINYINT},
+            password_required =  #{passwordRequired,jdbcType=TINYINT},
+            sid =  #{sid,jdbcType=VARCHAR},
+            sid_type =  #{sidType,jdbcType=INTEGER},
+            status =  #{status,jdbcType=VARCHAR},
+            mac =  #{mac,jdbcType=VARCHAR}
+        where   id = #{id,jdbcType=INTEGER} 
+    </update>
+</mapper>

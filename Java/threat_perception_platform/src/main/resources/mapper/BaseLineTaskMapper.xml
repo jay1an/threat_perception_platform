@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tpp.threat_perception_platform.mapper.BaseLineTaskMapper">
+
+    <resultMap id="BaseResultMap" type="com.tpp.threat_perception_platform.pojo.BaseLineTask">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="scheduledTime" column="scheduled_time" jdbcType="TIMESTAMP"/>
+            <result property="status" column="status" jdbcType="INTEGER"/>
+            <result property="hosts" column="hosts" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,name,scheduled_time,
+        status,hosts
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from base_line_task
+        where  id = #{id,jdbcType=INTEGER} 
+    </select>
+    <select id="selectByStatus" resultType="com.tpp.threat_perception_platform.pojo.BaseLineTask">
+        select
+        <include refid="Base_Column_List" />
+        from base_line_task
+        where status = #{status,jdbcType=INTEGER}
+    </select>
+
+    <select id="findAll" resultType="com.tpp.threat_perception_platform.pojo.BaseLineTask">
+        select
+        <include refid="Base_Column_List" />
+        from base_line_task
+        <where>
+            <if test="keywords != null and keywords != ''">
+                and (
+                `hosts` like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+                or `name` like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+                )
+            </if>
+            <if test="status != null">
+                and `status` = #{status,jdbcType=INTEGER}
+            </if>
+            <if test="start != null and start != ''">
+                and scheduled_time &gt;= #{start,jdbcType=TIMESTAMP}
+            </if>
+            <if test="end != null and end != ''">
+                and scheduled_time &lt;= #{end,jdbcType=TIMESTAMP}
+            </if>
+        </where>
+
+    </select>
+    <select id="selectUnfinishedCount" resultType="java.lang.Integer">
+        select count(*) from base_line_task
+        where status = 0
+    </select>
+
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete from base_line_task
+        where  id = #{id,jdbcType=INTEGER} 
+    </delete>
+
+    <delete id="deleteByIds">
+        delete from base_line_task
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.tpp.threat_perception_platform.pojo.BaseLineTask" useGeneratedKeys="true">
+        insert into base_line_task
+        ( id,name,scheduled_time
+        ,status,hosts)
+        values (#{id,jdbcType=INTEGER},#{name,jdbcType=VARCHAR},#{scheduledTime,jdbcType=TIMESTAMP}
+        ,#{status,jdbcType=INTEGER},#{hosts,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.tpp.threat_perception_platform.pojo.BaseLineTask" useGeneratedKeys="true">
+        insert into base_line_task
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="id != null">id,</if>
+                <if test="name != null">name,</if>
+                <if test="scheduledTime != null">scheduled_time,</if>
+                <if test="status != null">status,</if>
+                <if test="hosts != null">hosts,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="id != null">#{id,jdbcType=INTEGER},</if>
+                <if test="name != null">#{name,jdbcType=VARCHAR},</if>
+                <if test="scheduledTime != null">#{scheduledTime,jdbcType=TIMESTAMP},</if>
+                <if test="status != null">#{status,jdbcType=INTEGER},</if>
+                <if test="hosts != null">#{hosts,jdbcType=VARCHAR},</if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.tpp.threat_perception_platform.pojo.BaseLineTask">
+        update base_line_task
+        <set>
+                <if test="name != null">
+                    name = #{name,jdbcType=VARCHAR},
+                </if>
+                <if test="scheduledTime != null">
+                    scheduled_time = #{scheduledTime,jdbcType=TIMESTAMP},
+                </if>
+                <if test="status != null">
+                    status = #{status,jdbcType=INTEGER},
+                </if>
+                <if test="hosts != null">
+                    hosts = #{hosts,jdbcType=VARCHAR},
+                </if>
+        </set>
+        where   id = #{id,jdbcType=INTEGER} 
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.tpp.threat_perception_platform.pojo.BaseLineTask">
+        update base_line_task
+        set 
+            name =  #{name,jdbcType=VARCHAR},
+            scheduled_time =  #{scheduledTime,jdbcType=TIMESTAMP},
+            status =  #{status,jdbcType=INTEGER},
+            hosts =  #{hosts,jdbcType=VARCHAR}
+        where   id = #{id,jdbcType=INTEGER} 
+    </update>
+</mapper>

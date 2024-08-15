@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>弱密码检测结果管理</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/layui/layuiAdmin/css/admin.css" media="all">
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto" style="border-radius: 0;border-top: 4px solid #d2d2d2;">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">选择主机</label>
+                    <div class="layui-input-inline">
+                        <select id="host-select" lay-search="cs" name="keywords">
+                            <option value="">请选择主机</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <button class="layui-btn layuiadmin-btn-useradmin" lay-submit lay-filter="LAY-sysuser-front-search">
+                        <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="layui-card-body">
+            <!-- 表格数据加载 -->
+            <table id="LAY-user-manage" lay-filter="LAY-user-manage"></table>
+
+        </div>
+    </div>
+</div>
+
+<script src="/layui/layui.js"></script>
+<script type="text/javascript">
+    // 日期格式转换函数
+    function formatDate(str) {
+        if(str != null){
+            var now = new Date(str);
+            var year = now.getFullYear();  //取得4位数的年份
+            var month = now.getMonth() + 1;  //取得日期中的月份，其中0表示1月，11表示12月
+            var date = now.getDate();      //返回日期月份中的天数（1到31）
+            var hours = now.getHours();
+            var minutes = now.getMinutes();
+            var seconds = now.getSeconds();
+            return year + "-" + month + "-" + date +" "+((hours>9)?hours:"0"+hours)+":"+((minutes>9)?minutes:"0"+minutes)+":"+((seconds>9)?seconds:"0"+seconds);
+        }
+        return "";
+    }
+</script>
+<script type="text/javascript">
+    layui.config({
+        base: '/layui/layuiAdmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['layer','table','form'], function(){
+        var $ = layui.$
+            ,form = layui.form
+            ,layer = layui.layer
+            ,table = layui.table;
+
+        $.ajaxSetup({
+            complete: function (XMLHttpRequest, textStatus) {
+                if (XMLHttpRequest.status === 403) {
+                    layer.msg('权限不足，请联系管理员', {icon: 2});
+                } else if (XMLHttpRequest.status === 500) {
+                    layer.msg('服务器内部错误，请稍后再试', {icon: 2});
+                } else if (XMLHttpRequest.status !== 200) {
+                    layer.msg('请求失败，请稍后再试', {icon: 2});
+                }
+            }
+        });
+
+        // 加载表格
+        table.render({
+            elem: '#LAY-user-manage',
+            method: 'post',
+            url: '/threats/weak_pwd/list', // 后端接口
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            },
+            width: 'auto', // 自适应宽度
+            cellMinWidth: 80, // 全局定义常规单元格的最小宽度
+            title: '系统用户数据表',
+            cols: [
+                [
+                    {field: 'id', title: 'ID', width: 50},
+                    {field: 'mac', title: 'MAC地址', width: 160},
+                    {field: 'username', title: '用户名', width: 160},
+                    {field: 'weakPwd', title: '弱密码', width: 160},
+                    {field: 'type', title: '账号类型', width: 160},
+                    {field: 'createTime', title: '检测时间', width: 160, templet: function (d) {
+                        return formatDate(d.createTime);
+                    }}
+                    // {fixed: 'right', title:'操作', toolbar: '#table-useradmin-webuser', width: 90}
+                ]
+            ],
+            page: {
+                curr: 1, // 设定初始在第 1 页
+                limit: 15, // 设定初始每页显示 15 条
+                limits: [10, 15, 20, 25, 30] // 每页条数的选择项
+            }
+        });
+
+        // 监听搜索
+        form.on('submit(LAY-sysuser-front-search)', function(data){
+            var field = data.field;
+            //执行重载
+            table.reload('LAY-user-manage', {
+                url: '/threats/weak_pwd/list',
+                method: "post",
+                headers: {
+                    'Authorization': localStorage.getItem('token')
+                },
+                where: field
+            });
+        });
+
+
+        // 生成 CVE 列表的 HTML
+        function getCveListHtml(cveList) {
+            var html = '<ul class="layui-text">';
+            layui.each(cveList, function(index, item){
+                html += '<li>' + item + '</li>';
+            });
+            html += '</ul>';
+            return html;
+        }
+
+        // 加载主机列表
+        loadHostSelect();
+        function loadHostSelect() {
+            $.ajax({
+                url: '/host/list/2', // 替换为您的实际接口地址
+                type: 'post',
+                headers: {
+                    'Authorization': localStorage.getItem('token')
+                },
+                dataType: 'json',
+                success: function(response) {
+                    // 确认返回的数据格式是否正确
+                    console.log('返回的数据:', response);
+
+                    // 检查返回的 code 是否为 0 并且 data 是否为数组
+                    if (response.code === 0 && Array.isArray(response.data)) {
+                        var hosts = response.data;
+
+                        var $select = $('#host-select');
+                        // 清空现有的选项
+                        $select.empty();
+                        // 添加默认选项
+                        $select.append($('<option>', {
+                            value: '',
+                            text: '请选择主机'
+                        }));
+
+                        // 遍历数据并添加选项
+                        hosts.forEach(function(host) {
+                            var $option = $('<option>', {
+                                value: host.mac,
+                                text: host.hostname
+                            });
+                            console.log('添加选项:', $option);
+                            $select.append($option);
+                        });
+
+                        // 重新渲染 select 组件以使新添加的选项生效
+                        layui.form.render('select');
+                    } else {
+                        console.error('返回的数据格式不正确:', response);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('加载主机数据失败:', error);
+                }
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

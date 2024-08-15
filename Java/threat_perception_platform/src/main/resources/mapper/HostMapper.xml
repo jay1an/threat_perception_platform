@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tpp.threat_perception_platform.mapper.HostMapper">
+
+    <resultMap id="BaseResultMap" type="com.tpp.threat_perception_platform.pojo.Host">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="hostname" column="hostname" jdbcType="VARCHAR"/>
+            <result property="ip" column="ip" jdbcType="VARCHAR"/>
+            <result property="mac" column="mac" jdbcType="VARCHAR"/>
+            <result property="osName" column="os_name" jdbcType="VARCHAR"/>
+            <result property="osVersion" column="os_version" jdbcType="VARCHAR"/>
+            <result property="osType" column="os_type" jdbcType="VARCHAR"/>
+            <result property="osArch" column="os_arch" jdbcType="VARCHAR"/>
+            <result property="cpu" column="cpu" jdbcType="VARCHAR"/>
+            <result property="ram" column="ram" jdbcType="VARCHAR"/>
+            <result property="status" column="status" jdbcType="INTEGER"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,hostname,ip,
+        mac,os_name,os_version,
+        os_type,os_arch,cpu,
+        ram,status,sync_logs,create_time,
+        update_time
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from host
+        where  id = #{id,jdbcType=INTEGER} 
+    </select>
+
+    <select id="selectByMac" parameterType="java.lang.String" resultType="com.tpp.threat_perception_platform.pojo.Host">
+        select
+        <include refid="Base_Column_List"/>
+        from host
+        where mac = #{mac,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findAll" resultType="com.tpp.threat_perception_platform.pojo.Host">
+        select
+        <include refid="Base_Column_List" />
+        from host
+        <where>
+            <if test="id != null">
+                and id = #{id,jdbcType=INTEGER}
+            </if>
+            <if test="keywords != null and keywords != ''">
+                and (
+                hostname like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+                or ip like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+                or mac like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+                or os_name like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+                or os_version like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+                or os_type like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+                or os_arch like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+                or cpu like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+                )
+            </if>
+            <if test="status != null">
+                and status = #{status,jdbcType=INTEGER}
+            </if>
+            <if test="extra != null">
+                and sync_logs = #{extra,jdbcType=INTEGER}
+            </if>
+            <if test="start != null and start != ''">
+                and create_time &gt;= #{start,jdbcType=TIMESTAMP}
+            </if>
+            <if test="end != null and end != ''">
+                and create_time &lt;= #{end,jdbcType=TIMESTAMP}
+            </if>
+        </where>
+    </select>
+
+    <select id="findAllOnlyWithMacAndHostname" resultType="com.tpp.threat_perception_platform.pojo.Host">
+        select hostname, mac
+        from host
+    </select>
+
+    <select id="selectCountbyStatus" resultType="java.lang.Integer">
+        select count(*)
+        from host
+        where status = #{status,jdbcType=INTEGER}
+    </select>
+    <select id="selectOsName" resultType="java.lang.String">
+        select os_name from host
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete from host
+        where  id = #{id,jdbcType=INTEGER} 
+    </delete>
+    <delete id="deletebyIds">
+        delete from host
+        where  id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.tpp.threat_perception_platform.pojo.Host" useGeneratedKeys="true">
+        insert into host
+        ( id,hostname,ip
+        ,mac,os_name,os_version
+        ,os_type,os_arch,cpu
+        ,ram,status,sync_logs,create_time
+        ,update_time)
+        values (#{id,jdbcType=INTEGER},#{hostname,jdbcType=VARCHAR},#{ip,jdbcType=VARCHAR}
+        ,#{mac,jdbcType=VARCHAR},#{osName,jdbcType=VARCHAR},#{osVersion,jdbcType=VARCHAR}
+        ,#{osType,jdbcType=VARCHAR},#{osArch,jdbcType=VARCHAR},#{cpu,jdbcType=VARCHAR}
+        ,#{ram,jdbcType=VARCHAR},#{status,jdbcType=INTEGER},#{syncLogs,jdbcType=INTEGER},#{createTime,jdbcType=TIMESTAMP}
+        ,#{updateTime,jdbcType=TIMESTAMP})
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.tpp.threat_perception_platform.pojo.Host" useGeneratedKeys="true">
+        insert into host
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="id != null">id,</if>
+                <if test="hostname != null">hostname,</if>
+                <if test="ip != null">ip,</if>
+                <if test="mac != null">mac,</if>
+                <if test="osName != null">os_name,</if>
+                <if test="osVersion != null">os_version,</if>
+                <if test="osType != null">os_type,</if>
+                <if test="osArch != null">os_arch,</if>
+                <if test="cpu != null">cpu,</if>
+                <if test="ram != null">ram,</if>
+                <if test="status != null">status,</if>
+                <if test="syncLogs != null">sync_logs,</if>
+                <if test="createTime != null">create_time,</if>
+                <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="id != null">#{id,jdbcType=INTEGER},</if>
+                <if test="hostname != null">#{hostname,jdbcType=VARCHAR},</if>
+                <if test="ip != null">#{ip,jdbcType=VARCHAR},</if>
+                <if test="mac != null">#{mac,jdbcType=VARCHAR},</if>
+                <if test="osName != null">#{osName,jdbcType=VARCHAR},</if>
+                <if test="osVersion != null">#{osVersion,jdbcType=VARCHAR},</if>
+                <if test="osType != null">#{osType,jdbcType=VARCHAR},</if>
+                <if test="osArch != null">#{osArch,jdbcType=VARCHAR},</if>
+                <if test="cpu != null">#{cpu,jdbcType=VARCHAR},</if>
+                <if test="ram != null">#{ram,jdbcType=VARCHAR},</if>
+                <if test="status != null">#{status,jdbcType=INTEGER},</if>
+                <if test="syncLogs != null">#{syncLogs,jdbcType=INTEGER},</if>
+                <if test="createTime != null">#{createTime,jdbcType=TIMESTAMP},</if>
+                <if test="updateTime != null">#{updateTime,jdbcType=TIMESTAMP},</if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.tpp.threat_perception_platform.pojo.Host">
+        update host
+        <set>
+                <if test="hostname != null">
+                    hostname = #{hostname,jdbcType=VARCHAR},
+                </if>
+                <if test="ip != null">
+                    ip = #{ip,jdbcType=VARCHAR},
+                </if>
+                <if test="mac != null">
+                    mac = #{mac,jdbcType=VARCHAR},
+                </if>
+                <if test="osName != null">
+                    os_name = #{osName,jdbcType=VARCHAR},
+                </if>
+                <if test="osVersion != null">
+                    os_version = #{osVersion,jdbcType=VARCHAR},
+                </if>
+                <if test="osType != null">
+                    os_type = #{osType,jdbcType=VARCHAR},
+                </if>
+                <if test="osArch != null">
+                    os_arch = #{osArch,jdbcType=VARCHAR},
+                </if>
+                <if test="cpu != null">
+                    cpu = #{cpu,jdbcType=VARCHAR},
+                </if>
+                <if test="ram != null">
+                    ram = #{ram,jdbcType=VARCHAR},
+                </if>
+                <if test="status != null">
+                    status = #{status,jdbcType=INTEGER},
+                </if>
+                <if test="syncLogs != null">
+                    sync_logs = #{syncLogs,jdbcType=INTEGER},
+                </if>
+#                 createTime不应该被修改
+                <if test="updateTime != null">
+                    update_time = #{updateTime,jdbcType=TIMESTAMP},
+                </if>
+        </set>
+        where   id = #{id,jdbcType=INTEGER} 
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.tpp.threat_perception_platform.pojo.Host">
+        update host
+        set 
+            hostname =  #{hostname,jdbcType=VARCHAR},
+            ip =  #{ip,jdbcType=VARCHAR},
+            mac =  #{mac,jdbcType=VARCHAR},
+            os_name =  #{osName,jdbcType=VARCHAR},
+            os_version =  #{osVersion,jdbcType=VARCHAR},
+            os_type =  #{osType,jdbcType=VARCHAR},
+            os_arch =  #{osArch,jdbcType=VARCHAR},
+            cpu =  #{cpu,jdbcType=VARCHAR},
+            ram =  #{ram,jdbcType=VARCHAR},
+            status =  #{status,jdbcType=INTEGER},
+            create_time =  #{createTime,jdbcType=TIMESTAMP},
+            update_time =  #{updateTime,jdbcType=TIMESTAMP}
+        where   id = #{id,jdbcType=INTEGER} 
+    </update>
+    <update id="updateByMacSelective" parameterType="com.tpp.threat_perception_platform.pojo.Host">
+        update host
+        <set>
+            <if test="hostname != null">
+                hostname = #{hostname,jdbcType=VARCHAR},
+            </if>
+            <if test="ip != null">
+                ip = #{ip,jdbcType=VARCHAR},
+            </if>
+            <!-- mac 字段不应该出现在 set 中 -->
+            <if test="osName != null">
+                os_name = #{osName,jdbcType=VARCHAR},
+            </if>
+            <if test="osVersion != null">
+                os_version = #{osVersion,jdbcType=VARCHAR},
+            </if>
+            <if test="osType != null">
+                os_type = #{osType,jdbcType=VARCHAR},
+            </if>
+            <if test="osArch != null">
+                os_arch = #{osArch,jdbcType=VARCHAR},
+            </if>
+            <if test="cpu != null">
+                cpu = #{cpu,jdbcType=VARCHAR},
+            </if>
+            <if test="ram != null">
+                ram = #{ram,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=INTEGER},
+            </if>
+            <if test="syncLogs != null">
+                sync_logs = #{syncLogs,jdbcType=INTEGER},
+            </if>
+            <!-- createTime 通常不会在更新操作中被修改，除非有特殊需求 -->
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where mac = #{mac,jdbcType=VARCHAR}
+    </update>
+
+
+
+</mapper>

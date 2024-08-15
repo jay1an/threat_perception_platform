@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>系统用户管理</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/layui/layuiAdmin/css/admin.css" media="all">
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto"
+             style="border-radius: 0;border-top: 4px solid #d2d2d2;">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">用户名</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="keywords" placeholder="请输入用户名" autocomplete="off"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <button class="layui-btn layuiadmin-btn-useradmin" lay-submit lay-filter="LAY-sysuser-front-search">
+                        <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="layui-card-body">
+
+            <div style="padding-bottom: 10px;">
+                <button class="layui-btn layuiadmin-btn-useradmin" data-type="batchdel">删除</button>
+            </div>
+
+            <!--  表格数据加载 -->
+            <table id="LAY-user-manage" lay-filter="LAY-user-manage"></table>
+
+
+            <script type="text/html" id="table-useradmin-webuser">
+                <a class="layui-btn layui-btn layui-btn-xs" lay-event="detail"><i
+                        class="layui-icon layui-icon-set"></i>详情</a>
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i
+                        class="layui-icon layui-icon-delete"></i>删除</a>
+            </script>
+
+
+            <!--  创建时间格式化处理 -->
+            <script type="text/html" id="createTimeTpl">
+                {{formatDate(d.createTime)}}
+            </script>
+
+            <!--  更新时间格式化处理 -->
+            <script type="text/html" id="updateTimeTpl">
+                {{formatDate(d.updateTime)}}
+            </script>
+
+        </div>
+    </div>
+</div>
+
+<script src="/layui/layui.js"></script>
+<script type="text/javascript">
+    // 日期格式转换函数
+    function formatDate(str) {
+        if (str != null) {
+            var now = new Date(str);
+            var year = now.getFullYear();  //取得4位数的年份
+            var month = now.getMonth() + 1;  //取得日期中的月份，其中0表示1月，11表示12月
+            var date = now.getDate();      //返回日期月份中的天数（1到31）
+            var hours = now.getHours();
+            var minutes = now.getMinutes();
+            var seconds = now.getSeconds();
+            return year + "-" + month + "-" + date + " " + hours + ":" + minutes + ":" + seconds;
+        }
+        return "";
+    }
+</script>
+<script type="text/javascript">
+    layui.config({
+        base: '/layui/layuiAdmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['layer', 'table', 'form'], function () {
+        var $ = layui.$
+            , form = layui.form
+            , layer = layui.layer
+            , table = layui.table;
+
+
+        renderTable();
+
+
+        //加载table
+        function renderTable() {
+            table.render({
+                elem: '#LAY-user-manage'
+                , method: 'post'
+                , url: '/opra_log/list' //后端接口
+                , headers: {
+                    'Authorization': localStorage.getItem('token')
+                }
+                , width: 'auto'// 自适应宽度
+                , cellMinWidth: 80 //全局定义常规单元格的最小宽度
+                , title: '操作日志表'
+                , cols: [
+                    [
+                        {type: 'checkbox', fixed: 'left'}
+                        , {field: 'id', title: 'ID', width: 80}
+                        , {field: 'title', title: '操作主题', width: 100}
+                        , {
+                        field: 'content', title: '操作内容', width: 150}
+                        ,
+                        {field: 'method', title: '方法名', width: 100},
+                        {field: 'requestMethod', title: '请求方法', width: 100},
+                        {field: 'operName', title: '操作人', width: 100},
+                        {field: 'requestUrl', title: '请求路径', width: 100},
+                        {field: 'requestParam', title: '请求参数', width: 100},
+                        {field: 'responseResult', title: '返回结果', width: 100},
+                        {
+                        field: 'operTime', title: '操作时间', width: 160, templet: function (d) {
+                            return formatDate(d.operTime);
+                        }
+                    }
+                        , {fixed: 'right', title: '操作', toolbar: '#table-useradmin-webuser', width: 180}
+                    ]]
+                , page: {
+                    curr: 1 //设定初始在第 5 页
+                    , limit: 5 //设定初始每页显示 5 条
+                },
+                limits: [5, 10, 15, 20],
+                complete: function (XMLHttpRequest, textStatus) {
+                    // XMLHttpRequest 是完整的 HTTP 响应对象
+                    if (XMLHttpRequest.status === 403) {
+                        layer.msg('权限不足，请联系管理员', {icon: 2});
+                    }
+                }
+            });
+        }
+
+        //监听行工具事件: 单行删除和修改
+        table.on('tool(LAY-user-manage)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                layer.confirm('真的删除吗?', function (index) {
+                    $.ajax({
+                        url: "/opra_log/delete", //请求后端接口地址
+                        type: "post", //请求方式get | post
+                        headers: {
+                            'Authorization': localStorage.getItem('token')
+                        },
+                        data: {ids: [data.id]}, //数据
+                        dataType: "json", //后端返回参数类型
+                        success: function (res) { //请求成功后回调函数res = JSONObject.toJSONString(resultMap)
+                            if (res.code == 0) {//成功
+                                layer.msg(res.msg);//弹出提示
+                                table.reload('LAY-user-manage'); //数据刷新
+                                layer.close(index); //关闭弹层
+                            } else {
+                                layer.msg(res.msg, {icon: 5});//弹出提示
+                            }
+                        }
+                    })
+                });
+            } else if (obj.event === 'detail') {
+                showOperLogDetails(data)
+            }
+        });
+
+        function showOperLogDetails(data) {
+            var content = `<div style="padding: 20px;">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label custom-label-width">ID：</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" class="layui-input custom-input-width" value="${data.id}" disabled>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label custom-label-width">操作主题：</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" class="layui-input custom-input-width" value="${data.title}" disabled>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label custom-label-width">操作内容：</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" class="layui-input custom-input-width" value="${data.content}" disabled>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label custom-label-width">方法名：</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" class="layui-input custom-input-width" value="${data.method}" disabled>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label custom-label-width">请求方法：</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" class="layui-input custom-input-width" value="${data.requestMethod}" disabled>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label custom-label-width">操作人：</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" class="layui-input custom-input-width" value="${data.operName}" disabled>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label custom-label-width">请求路径：</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" class="layui-input custom-input-width" value="${data.requestUrl}" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label custom-label-width">请求参数：</label>
+                                    <div class="layui-input-block">
+                                        <textarea class="layui-textarea">${data.requestParam}</textarea>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label custom-label-width">返回信息：</label>
+                                    <div class="layui-input-block">
+                                        <textarea class="layui-textarea">${data.responseResult}</textarea>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label custom-label-width">操作时间：</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" class="layui-input custom-input-width" value="${formatDate(data.operTime)}" disabled>
+                                    </div>
+                                </div>
+                        </div>
+                        <style>
+                            .custom-label-width {
+                                width: 100px; /* 调整 label 的宽度 */
+                            }
+                            .custom-input-width {
+                                width: 300px; /* 调整 input 的宽度 */
+                            }
+                            .layui-textarea{
+                                width: 300px; /* 调整 input 的宽度 */
+                                height: auto;
+                            }
+                        </style>`;
+
+            layer.open({
+                type: 1,
+                title: '应用风险详细信息',
+                area: ['500px', '600px'],
+                content: content
+            });
+        }
+
+
+
+        //监听搜索
+        form.on('submit(LAY-sysuser-front-search)', function (data) {
+            var field = data.field;
+            //执行重载
+            table.reload('LAY-user-manage', {
+                url: '/opra_log/list',
+                method: "post",
+                headers: {
+                    'Authorization': localStorage.getItem('token')
+                },
+                where: field
+            });
+        });
+
+        //事件 批量删除，添加用户
+        var active = {
+            batchdel: function () {
+                var checkStatus = table.checkStatus('LAY-user-manage')
+                    , checkData = checkStatus.data; //得到选中的数据
+
+                if (checkData.length == 0) {
+                    return layer.msg('请选择数据');
+                }
+
+                // 程序走到这里，表示已经有选中要删除的数据了。
+                layer.confirm('确定删除吗？', function () {
+                    var userIds = new Array();
+                    $.each(checkData, function (index, item) {
+                        userIds.push(item.id);
+                    })
+                    // 提交给后端
+                    $.ajax({
+                        url: "/opra_log/delete",
+                        type: "post",
+                        headers: {
+                            'Authorization': localStorage.getItem('token')
+                        },
+                        data: {ids: userIds},
+                        dataType: "json",
+                        success: function (res) {
+                            if (res.code == 0) {//成功
+                                layer.msg(res.msg);
+                                table.reload('LAY-user-manage'); //数据刷新
+                                layer.close(index); //关闭弹层
+                            } else {
+                                layer.msg(res.msg, {icon: 5});//弹出提示
+                            }
+                        }
+                    })
+                })
+            }
+        };
+
+        $('.layui-btn.layuiadmin-btn-useradmin').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+
+    });
+</script>
+</body>
+</html>

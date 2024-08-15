@@ -1,0 +1,66 @@
+spring:
+    application:
+        name: threat_perception_platform
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url:        # 数据库连接地址
+        username:   # 数据库用户名
+        password:   # 数据库密码
+    data:
+        redis:
+            database: 0
+            host:                       # Redis 服务器地址
+            jedis:
+                pool:
+                    max-active: 100
+                    max-idle: 200
+                    max-wait: 10000
+                    min-idle: 10
+            password:                   # Redis 密码
+            port:                       # Redis 端口
+            timeout: 30000
+    devtools:
+        restart:
+            trigger-file: trigger.txt
+    thymeleaf:
+        cache: false
+        encoding: UTF-8
+        mode: HTML5
+        prefix: classpath:/templates/
+        servlet:
+            content-type: text/html
+        suffix: .html
+    rabbitmq:
+        host:                   # RabbitMQ 服务器地址
+        port:                   # RabbitMQ 服务端口
+        username:               # RabbitMQ 用户名
+        password:               # RabbitMQ 密码
+        virtual-host:           # RabbitMQ 虚拟主机
+
+        listener:
+            simple:
+                concurrency: 5              # 消费者并发数量
+                max-concurrency: 10         # 消费者最大并发数量
+                acknowledge-mode: manual    # 手动确认模式
+                prefetch: 1                 # 每个消费者从 RabbitMQ 中预取的消息数量
+
+mybatis:
+    configuration:
+        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+        map-underscore-to-camel-case: true
+    mapper-locations: classpath:/mapper/*.xml
+    type-aliases-package: com.tpp.threat_perception_platform.pojo
+
+
+pagehelper:
+    helper-dialect: mysql
+    params: count=countsql
+    reasonable: true
+    support-methods-arguments: true
+
+
+logging:
+    level:
+        org:
+            springframework:
+                security: DEBUG

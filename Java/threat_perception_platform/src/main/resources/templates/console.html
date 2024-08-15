@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>控制台主页</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <!--引入本地layui.css-->
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <!--引入本地自定义的admin、login.css-->
+    <link rel="stylesheet" href="/layui/layuiAdmin/css/admin.css" media="all">
+    <!-- 引入刚刚下载的 ECharts 文件 -->
+    <script src="/js/echarts.min.js"></script>
+    <style>
+        .layui-form-item {
+            display: flex;
+            align-items: baseline; /* 根据需要调整对齐方式 */
+        }
+        .layui-form-label {
+            width: 80px; /* 可以根据实际情况设置合适的宽度 */
+            margin-right: 0px; /* 调整标签与输入框之间的右侧间距 */
+        }
+        .layui-input-block {
+            flex: 1; /* 自动占据剩余空间 */
+            margin-left: -10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md8">
+            <div class="layui-row layui-col-space10">
+                <div class="layui-col-md4">
+                    <div class="layui-card">
+                        <div class="layui-card-header">快捷方式</div>
+                        <div class="layui-card-body">
+                            <ul class="layui-row layui-col-space10">
+                                <li class="layui-col-xs6">
+                                    <a href="/page/role/list">
+                                        <i class="layui-icon layui-icon-user"></i>
+                                        <cite>用户管理</cite>
+                                    </a>
+                                </li>
+                                <li class="layui-col-xs6">
+                                    <a href="/page/host/list">
+                                        <i class="layui-icon layui-icon-set"></i>
+                                        <cite>主机列表</cite>
+                                    </a>
+                                </li>
+                                <li class="layui-col-xs6">
+                                    <a href="/page/vulnerability/list">
+                                        <i class="layui-icon layui-icon-chrome"></i>
+                                        <cite>漏洞库管理</cite>
+                                    </a>
+                                </li>
+                                <li class="layui-col-xs6">
+                                    <a href="/page/baseline/task/list">
+                                        <i class="layui-icon layui-icon-engine"></i>
+                                        <cite>基线任务管理</cite>
+                                    </a>
+                                </li>
+                                <!-- 其他项根据实际需要添加 -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md8">
+                    <div class="layui-row layui-col-space10">
+                        <div class="layui-col-md6">
+                            <div class="layui-card">
+                                <div class="layui-card-header">日志&基线信息</div>
+                                <div class="layui-card-body">
+                                    <ul class="layui-row layui-col-space20">
+                                        <li class="layui-col-xs4">
+                                            <a class="layadmin-backlog-body">
+                                                <h3>日志记录</h3>
+                                                <p><cite id="logCount"></cite></p>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a class="layadmin-backlog-body">
+                                                <h3>基线记录</h3>
+                                                <p><cite id="baselineResCount"></cite></p>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a class="layadmin-backlog-body">
+                                                <h3>基线任务</h3>
+                                                <p><cite id="baselineUnfinishedTaskCount"></cite></p>
+                                            </a>
+                                        </li>
+                                        <!-- 其他项根据实际需要添加 -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md6">
+                            <div class="layui-card">
+                                <div class="layui-card-header">异常项</div>
+                                <div class="layui-card-body">
+                                    <ul class="layui-row layui-col-space10">
+                                        <li class="layui-col-xs4">
+                                            <a class="layadmin-backlog-body">
+                                                <h3>异常主机</h3>
+                                                <p><cite id="abnormalHostCount"></cite></p>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a class="layadmin-backlog-body">
+                                                <h3>风险项</h3>
+                                                <p><cite id="threatsCount"></cite></p>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a class="layadmin-backlog-body">
+                                                <h3>异常基线</h3>
+                                                <p><cite id="abnormalBaselineCount"></cite></p>
+                                            </a>
+                                        </li>
+                                        <!-- 其他项根据实际需要添加 -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md12">
+                    <div class="layui-row layui-col-space10">
+                        <div class="layui-col-md6">
+                            <div class="layui-card">
+                                <div class="layui-card-header">风险数据概览</div>
+                                <div class="layui-card-body">
+                                    <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+                                    <div id="ThreatsPieChart" style="width: 100%;height:400px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md6">
+                            <div class="layui-card">
+                                <div class="layui-card-header">资产数据概览</div>
+                                <div class="layui-card-body">
+                                    <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+                                    <div id="AssetsColumnChart" style="width: 100%;height:400px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-md4">
+            <div class="layui-card">
+                <div class="layui-card-header">主机情况概览</div>
+                <div class="layui-card-body">
+                    <div id="HostOnlineOfflinePieCharts" style="width: 100%; height: 220px;"></div>
+                </div>
+            </div>
+            <div class="layui-card">
+                <div class="layui-card-header">主机操作系统类型</div>
+                <div class="layui-card-body">
+                    <div id="HostOsPieCharts" style="width: 100%; height: 250px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="/layui/layui.js"></script>
+<script type="text/javascript" src="/js/jquery-3.7.1.min.js"></script>
+<script type="text/javascript">
+
+    // 基于准备好的dom，初始化echarts实例
+    const ThreatsPieChart = echarts.init(document.getElementById('ThreatsPieChart'));
+    const AssetsColumnChart = echarts.init(document.getElementById('AssetsColumnChart'));
+
+    const HostOsPieCharts = echarts.init(document.getElementById('HostOsPieCharts'));
+    const HostOnlineOfflinePieCharts = echarts.init(document.getElementById('HostOnlineOfflinePieCharts'));
+
+    let abnormalHosts;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const abnormalHostCount = document.getElementById('abnormalHostCount');
+        abnormalHostCount.addEventListener('click', function () {
+            // 在这里你可以根据异常主机的数据生成相应的MAC地址列表
+            const macLinks = Object.keys(abnormalHosts).map(function (mac) {
+                const hostData = abnormalHosts[mac];
+                console.log(JSON.stringify(hostData));
+                return `<a href="javascript:void(0);" onclick="showHostDetails('${mac}', '${encodeURIComponent(JSON.stringify(hostData))}')" class="layui-btn layui-btn-primary layui-btn-sm mac-address-btn" style="margin: 5px;">${mac}</a>`;
+            });
+
+            // 弹出层展示MAC地址列表
+            layer.open({
+                type: 1,
+                title: '异常主机列表',
+                area: ['600px', '300px'],
+                content: `<div style="padding: 20px;">${macLinks.join('')}</div>`
+            });
+        });
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // 从本地存储中获取 Token
+        var token = localStorage.getItem('token');
+
+        // AJAX 请求的配置
+        var requestOptions = {
+            method: 'post',
+            headers: {
+                'Authorization': token, // 添加身份验证 Token
+            }
+        };
+
+        // 使用 Fetch API 发起请求
+        fetch('/dashboard/data', requestOptions)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(d => {
+                var data = d.data;
+                // 记录一下异常主机的mac地址
+                abnormalHosts = data.abnormalHosts;
+
+                // 更新页面上的数据
+                document.getElementById('logCount').textContent = data.logCount;
+                document.getElementById('baselineResCount').textContent = data.baselineResCount;
+                document.getElementById('baselineUnfinishedTaskCount').textContent = data.baselineUnfinishedTaskCount;
+                document.getElementById('abnormalHostCount').textContent = Object.keys(data.abnormalHosts).length;
+                document.getElementById('threatsCount').textContent = data.threatsCount;
+                document.getElementById('abnormalBaselineCount').textContent = data.abnormalBaselineCount;
+
+                // 在数据更新后检查是否大于0，然后设置颜色
+                setRedColorIfGreaterThanZero(document.getElementById('abnormalHostCount'));
+                setRedColorIfGreaterThanZero(document.getElementById('abnormalBaselineCount'));
+                setRedColorIfGreaterThanZero(document.getElementById('threatsCount'));
+
+                // 更新其他数据项
+                updateHostOnlineOfflinePieChartWithData(data)
+                updateHostOsPieChartWithData(data)
+                updateThreatsPieChartWithData(data)
+                updateAssetsColumnChartWithData(data)
+
+
+            })
+            .catch(error => console.error('Error fetching dashboard data:', error));
+    });
+
+    function updateHostOnlineOfflinePieChartWithData(data) {
+        // 指定图表的配置项和数据
+        var option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b} : {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',  // 垂直布局
+                left: 'left',        // 图例显示在左侧
+                data: ['在线', '离线']
+            },
+            series: [
+                {
+                    name: '主机状态',
+                    type: 'pie',
+                    radius: ['50%', '70%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 10
+                    },
+                    label: {
+                        show: true,
+                        position: 'outside',
+                        formatter: '{b}\n{d}%'
+                    },
+                    labelLine: {
+                        show: true,
+                        length: 20,
+                        length2: 10,
+                        smooth: false // 关闭线条的平滑连接
+                    },
+                    data: [
+                        {value: data.onlineHostCount, name: '在线', itemStyle: {color: 'green'}},
+                        {value: data.offlineHostCount, name: '离线', itemStyle: {color: 'red'}}
+                    ]
+                }
+            ]
+        };
+
+        HostOnlineOfflinePieCharts.setOption(option);
+    }
+
+    function updateHostOsPieChartWithData(data) {
+        var windowsCountMap = data.windowsCountMap;
+        var linuxCount = data.linuxCount;
+        var macOSCount = data.macOSCount;
+        // 指定图表的配置项和数据
+        var option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b} : {c} ({d}%)'
+            },
+            legend: [
+                {
+                    left: 'center', // 上方图例居中
+                    top: 'top', // 图例在上方
+                    data: [] // Initialize with empty data
+                },
+                {
+                    left: 'center', // 下方图例居中
+                    bottom: 'bottom', // 图例在下方
+                    data: [] // Initialize with empty data
+                }
+            ],
+            series: [
+                {
+                    type: 'pie',
+                    radius: [10, 60],
+                    center: ['50%', '50%'],
+                    roseType: 'area',
+                    itemStyle: {
+                        borderRadius: 0
+                    },
+                    data: []
+                }
+            ]
+        };
+
+        // Populate legends and series data
+        option.legend[0].data = Object.keys(windowsCountMap); // Windows legend
+        option.legend[1].data = ['Linux', 'macOS']; // Other OS legend
+
+        for (var os in windowsCountMap) {
+            option.series[0].data.push({value: windowsCountMap[os], name: os});
+        }
+
+        option.series[0].data.push({value: linuxCount, name: 'Linux'});
+        option.series[0].data.push({value: macOSCount, name: 'macOS'});
+
+        HostOsPieCharts.setOption(option);
+    }
+
+
+    function updateThreatsPieChartWithData(data) {
+        // 指定图表的配置项和数据
+        var option = {
+            backgroundColor: '#ffffff',
+            tooltip: {
+                trigger: 'item'
+            },
+            series: [
+                {
+                    type: 'pie',
+                    radius: ['30%', '70%'], // 内外半径
+                    center: ['50%', '50%'],
+                    data: [],
+                    roseType: 'radius',
+                    label: {
+                        color: 'rgba(0, 0, 0, 0.8)' // 标签颜色调整为深色
+                    },
+                    labelLine: {
+                        lineStyle: {
+                            color: 'rgba(0, 0, 0, 0.8)' // 标签线颜色调整为深色
+                        },
+                        smooth: 0.2,
+                        length: 10,
+                        length2: 20
+                    },
+                    itemStyle: {
+                        color: '#c23531',
+                        shadowBlur: 200,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    },
+                    animationType: 'scale',
+                    animationEasing: 'elasticOut',
+                    animationDelay: function (idx) {
+                        return Math.random() * 200;
+                    }
+                }
+            ]
+        };
+
+        option.series[0].data = [
+            { value: data.threatHotfixCount, name: '补丁风险'},
+            { value: data.threatWeakPwdCount, name: '弱密码风险'},
+            { value: data.threatVulnerabilityCount, name: '漏洞风险'},
+            { value: data.threatAppCount, name: '应用风险'}
+        ];
+
+        // 使用刚指定的配置项和数据显示图表
+        ThreatsPieChart.setOption(option);
+    }
+
+    function updateAssetsColumnChartWithData(data) {
+        var option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            xAxis: {
+                type: 'category',
+                data: ['账号资产', '服务资产', '进程资产', '应用资产']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [
+                {
+                    type: 'bar',
+                    barWidth: '60%', // 柱宽度
+                    itemStyle: {
+                        color: '#006400'// 设置柱状图的颜色为红色
+                    },
+                    data: [
+                        data.accountCount,
+                        data.serviceCount,
+                        data.processCount,
+                        data.appCount
+                    ]
+                }
+            ]
+        };
+
+        // 使用刚指定的配置项和数据显示图表
+        AssetsColumnChart.setOption(option);
+    }
+
+    // 假设点击异常主机的每个MAC地址都调用这个函数
+    window.showHostDetails = function (mac,encodedHostData) {
+        // 假设你有一个接口可以通过MAC地址获取主机详细信息
+        const hostData = JSON.parse(decodeURIComponent(encodedHostData));
+        console.log(`异常详情:`, hostData);
+
+        // 构建风险项描述
+        var riskDescription = ``;
+
+        // 判断并构建风险项描述
+        if (hostData.hotfixAbnormal > 0) {
+            riskDescription += `<span style="color: red;">   [热补丁异常]   </span>`;
+        }
+        if (hostData.appAbnormal > 0) {
+            riskDescription += `<span style="color: red;">   [应用异常]   </span> `;
+        }
+        if (hostData.vulAbnormal > 0) {
+            riskDescription += `<span style="color: red;">   [漏洞异常]   </span> `;
+        }
+        if (hostData.weakPwdAbnormal > 0) {
+            riskDescription += `<span style="color: red;">   [弱口令异常]   </span>`;
+        }
+        if (hostData.baselineAbnormal > 0) {
+            riskDescription += `<span style="color: red;">   [基线异常]   </span> `;
+        }
+        // 去除最后的逗号和空格
+        riskDescription = riskDescription.slice(0, -2);
+        $.ajax({
+            url: '/host/details', // 替换为您的实际接口地址
+            type: 'post',
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            },
+            data: {mac: mac},
+            dataType: 'json',
+            success: function (response) {
+                if (response.code === 0) {
+                    var hostDetails = response.data;
+                    // 显示主机详细信息，可以使用layer弹出层
+                    layer.open({
+                        type: 1,
+                        title: '主机详细信息',
+                        area: ['600px', '400px'],
+                        content: `<div style="padding: 20px;">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">主机名：</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" class="layui-input" value="${hostDetails.hostname}" disabled>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">MAC地址：</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" class="layui-input" value="${hostDetails.mac}" disabled>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">IP地址：</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" class="layui-input" value="${hostDetails.ip}" disabled>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">操作系统：</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" class="layui-input" value="${hostDetails.osName}" disabled>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">风险项：</label>
+                                    <div class="layui-input-block">
+                                        <span>
+                                        <p class="risk-description">${riskDescription}</p>
+                                        </span>
+                                    </div>
+                                </div>
+                              </div>`
+                    });
+                } else {
+                    layer.msg('获取主机详细信息失败');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('加载主机详细信息失败:', error);
+            }
+        });
+    };
+
+    // 设置值
+    function setRedColorIfGreaterThanZero(element) {
+        if (parseInt(element.textContent) > 0) {
+            element.style.color = 'red';
+        } else {
+            // 可选：如果不大于0，可以设置回默认的颜色
+            element.style.color = ''; // 或者其他默认的颜色
+        }
+    }
+</script>
+
+</body>
+</html>
+
