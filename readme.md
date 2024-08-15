@@ -1,6 +1,8 @@
 # Web威胁感知系统
 
-本项目是一个使用 SpringBoot 框架和 RabbitMQ 消息队列构建的 Web 威胁感知系统。平台端使用 Java 编写，旨在同步平台和客户端之间的消息。
+本项目是一个使用 SpringBoot 框架和 RabbitMQ 消息队列构建的 Web 威胁感知系统。平台端使用 Java 编写，客户端使用Python编写。
+
+面向政企安全管理。
 
 ## 功能
 
